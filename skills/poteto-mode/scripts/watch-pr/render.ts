@@ -33,9 +33,13 @@ function reviewCell(row: T.PrSnapshot): string {
 function mergeCell(row: T.PrSnapshot): string {
   if (row.kind === "merged") return "✅ merged";
   if (row.kind === "closed") return "❌ closed";
+  if (row.kind === "conflicting") return "⚠️ conflict";
   if (row.facts.isDraft) return "⏸ draft";
+  if (row.facts.mergeStateStatus === "BEHIND") return "⚠️ behind";
   if (row.facts.reviewDecision === "CHANGES_REQUESTED")
     return "⚠️ changes requested";
+  if (row.facts.reviewDecision === "REVIEW_REQUIRED")
+    return "⚠️ review required";
   return row.facts.mergeable === "CONFLICTING" ||
     row.facts.mergeStateStatus === "DIRTY" ||
     row.facts.mergeStateStatus === "CONFLICTING"
@@ -121,7 +125,11 @@ function renderBlocker(blocker: T.MergeBlocker | StatusQueryBlocker): string {
           ? "restore or remove the closed PR from the queued stack"
           : blocker.reason === "draft-pr"
             ? "mark the PR ready for review before waiting for the merge queue"
-            : "resolve the changes-requested review before waiting for the merge queue";
+            : blocker.reason === "behind-base"
+              ? "rebase or update the branch onto the latest base before merging"
+              : blocker.reason === "review-required"
+                ? "obtain the required review approval before waiting for the merge queue"
+                : "resolve the changes-requested review before waiting for the merge queue";
       return [
         `BLOCKER: ${blocker.reason}`,
         `pr=${blocker.pr.number}`,

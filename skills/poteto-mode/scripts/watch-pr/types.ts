@@ -145,7 +145,7 @@ export type CiClean = CiBase & {
 export type CiState = CiFailing | CiGithubRejected | CiPending | CiClean;
 export type PrSnapshot =
   | {
-      readonly kind: "merged" | "closed";
+      readonly kind: "merged" | "closed" | "conflicting";
       readonly context: PrContext;
       readonly facts: PullRequestFacts;
     }
@@ -166,7 +166,10 @@ export interface ReadyPr {
     readonly ci: CiClean;
     readonly gate: {
       readonly state: "OPEN";
-      readonly reviewDecision: Exclude<ReviewDecision, "CHANGES_REQUESTED">;
+      readonly reviewDecision: Exclude<
+        ReviewDecision,
+        "CHANGES_REQUESTED" | "REVIEW_REQUIRED"
+      >;
       readonly draft: "not-draft" | "draft-allowed";
     };
   };
@@ -179,7 +182,9 @@ export interface MergedPr {
 export type MergeGateReason =
   | "closed-without-merge"
   | "draft-pr"
-  | "changes-requested";
+  | "behind-base"
+  | "changes-requested"
+  | "review-required";
 export type MergeBlocker =
   | {
       readonly kind: "merge-conflicts";

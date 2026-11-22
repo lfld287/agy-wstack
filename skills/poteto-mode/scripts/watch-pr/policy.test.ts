@@ -89,6 +89,34 @@ describe("readiness truth table", () => {
       blocker: { kind: "failing-checks" },
     });
   });
+
+  it("blocks BEHIND branches and REVIEW_REQUIRED PRs instead of reporting READY", async () => {
+    for (const [facts, reason] of [
+      [{ mergeStateStatus: "BEHIND" as const }, "behind-base"],
+      [
+        {
+          mergeStateStatus: "BLOCKED" as const,
+          reviewDecision: "REVIEW_REQUIRED" as const,
+        },
+        "review-required",
+      ],
+    ] as const) {
+      const snapshot = await readSnapshot({
+        reader: fakeReader({
+          facts,
+          fastPath: { kind: "checks", checks: [passingCheck()] },
+          commitRollups: [{ oid: "head", state: "SUCCESS" }],
+        }),
+        context: context(1),
+        pendingHistory: "include",
+        allowDraft: false,
+      });
+      expect(classifyPr(snapshot)).toMatchObject({
+        kind: "blocker",
+        blocker: { kind: "merge-gate", reason },
+      });
+    }
+  });
 });
 
 describe("snapshot query planning", () => {
@@ -149,6 +177,27 @@ describe("snapshot query planning", () => {
       ).kind
     ).toBe("merged");
     expect(reader.calls).toEqual(["pullRequest"]);
+  });
+
+  it("short-circuits first-read merge conflicts before querying threads or checks", async () => {
+    const reader = fakeReader({
+      facts: { mergeable: "CONFLICTING", mergeStateStatus: "DIRTY" },
+      fastPath: { kind: "unusable", exitCode: 1, stderr: "ci unavailable" },
+      rollupPages: [{ checks: [], endCursor: null }],
+    });
+    const snapshot = await readSnapshot({
+      reader,
+      context: context(6),
+      pendingHistory: "include",
+      allowDraft: false,
+      shortCircuitConflicts: true,
+    });
+    expect(snapshot.kind).toBe("conflicting");
+    expect(reader.calls).toEqual(["pullRequest"]);
+    expect(classifyPr(snapshot)).toMatchObject({
+      kind: "blocker",
+      blocker: { kind: "merge-conflicts" },
+    });
   });
 });
 

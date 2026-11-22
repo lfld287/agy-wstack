@@ -56,17 +56,24 @@ const AUTOMATION_TOKENS = [
   "pr review automation",
   "review automation",
 ] as const;
+const hasMergeConflict = (facts: T.PullRequestFacts): boolean =>
+  facts.mergeable === "CONFLICTING" ||
+  facts.mergeStateStatus === "DIRTY" ||
+  facts.mergeStateStatus === "CONFLICTING";
 export async function readSnapshot(args: {
   readonly reader: T.GitHubReader;
   readonly context: T.PrContext;
   readonly pendingHistory: "include" | "omit";
   readonly allowDraft: boolean;
+  readonly shortCircuitConflicts?: boolean;
 }): Promise<T.PrSnapshot> {
   const facts = await args.reader.pullRequest(args.context);
   if (facts.state === "MERGED" || facts.mergedAt !== null)
     return { kind: "merged", context: args.context, facts };
   if (facts.state === "CLOSED")
     return { kind: "closed", context: args.context, facts };
+  if (args.shortCircuitConflicts && hasMergeConflict(facts))
+    return { kind: "conflicting", context: args.context, facts };
   const threads = await resolveReviewThreads(args.reader, args.context);
   const checks = await resolveChecks(args.reader, args.context);
   const failed = nonEmpty(
@@ -139,10 +146,8 @@ export async function readSnapshot(args: {
   };
 }
 const conflictBlocker = (row: T.PrSnapshot): T.MergeBlocker | null =>
-  row.kind === "open" &&
-  (row.facts.mergeable === "CONFLICTING" ||
-    row.facts.mergeStateStatus === "DIRTY" ||
-    row.facts.mergeStateStatus === "CONFLICTING")
+  row.kind === "conflicting" ||
+  (row.kind === "open" && hasMergeConflict(row.facts))
     ? { kind: "merge-conflicts", pr: row.context, facts: row.facts }
     : null;
 function threadBlocker(row: T.PrSnapshot): T.MergeBlocker | null {
@@ -161,12 +166,14 @@ function gateReason(
   row: T.PrSnapshot,
   allowDraft: boolean
 ): T.MergeGateReason | null {
-  if (row.kind === "merged") return null;
+  if (row.kind === "merged" || row.kind === "conflicting") return null;
   if (row.kind === "closed") return "closed-without-merge";
   if (row.facts.isDraft && !allowDraft) return "draft-pr";
-  return row.facts.reviewDecision === "CHANGES_REQUESTED"
-    ? "changes-requested"
-    : null;
+  if (row.facts.mergeStateStatus === "BEHIND") return "behind-base";
+  if (row.facts.reviewDecision === "CHANGES_REQUESTED")
+    return "changes-requested";
+  if (row.facts.reviewDecision === "REVIEW_REQUIRED") return "review-required";
+  return null;
 }
 function gateBlocker(
   row: T.PrSnapshot,
@@ -199,7 +206,11 @@ function readyContribution(
   )
     return null;
   const reviewDecision = row.facts.reviewDecision;
-  if (reviewDecision === "CHANGES_REQUESTED") return null;
+  if (
+    reviewDecision === "CHANGES_REQUESTED" ||
+    reviewDecision === "REVIEW_REQUIRED"
+  )
+    return null;
   return {
     kind: "ready-pr",
     context: row.context,
@@ -437,6 +448,7 @@ export async function runSimple(args: {
           context,
           pendingHistory: "include",
           allowDraft: args.options.allowDraft,
+          shortCircuitConflicts: !args.statusOnly,
         })
       );
     const complete = nonEmpty(rows);
@@ -750,6 +762,7 @@ export async function runQueued(args: {
       context,
       pendingHistory: "omit",
       allowDraft: args.options.allowDraft,
+      shortCircuitConflicts: true,
     });
     const applied = applyQueueSnapshot(
       state,
