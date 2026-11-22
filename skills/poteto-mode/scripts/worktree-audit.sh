@@ -59,22 +59,24 @@ else
 	stat_fmt=(-f '%m %N'); fmt_day() { date -r "$1" '+%Y-%m-%d'; }
 fi
 
-# PR state by branch, fetched once as [{number, state, head}] with a lowercase
-# state. Origin when its CLI can read this repo's PRs, otherwise gh. Empty when
-# neither can.
-prs=$(mktemp)
+# Normalize both forge responses with lowercase state.
+prs=$(mktemp) || exit 1
+trap 'rm -f "$prs"' EXIT
 if command -v origin >/dev/null 2>&1 \
 	&& raw=$(origin pr list --author "@me" --state all --limit 1000 \
-		--json number,status,headRef 2>/dev/null); then
-	printf '%s' "$raw" | jq '[.[] | {number, state: .status, head: .headRef}]' > "$prs" 2>/dev/null
+		--json number,status,headRef,baseRef,headRefOid 2>/dev/null); then
+	printf '%s' "$raw" | jq '[.[] | {number, state: (.status | ascii_downcase),
+		head: .headRef, base: .baseRef, headOid: .headRefOid}]' > "$prs" 2>/dev/null
 elif raw=$(gh pr list --author "@me" --state all --limit 1000 \
-	--json number,state,headRefName 2>/dev/null); then
-	printf '%s' "$raw" | jq '[.[] | {number, state: (.state | ascii_downcase), head: .headRefName}]' > "$prs" 2>/dev/null
+	--json number,state,headRefName,baseRefName,headRefOid 2>/dev/null); then
+	printf '%s' "$raw" | jq '[.[] | {number, state: (.state | ascii_downcase),
+		head: .headRefName, base: .baseRefName, headOid: .headRefOid}]' > "$prs" 2>/dev/null
 fi
 [ -s "$prs" ] || echo "[]" > "$prs"
 
 # Chat transcript dirs for a path, per harness: Cursor, Claude Code, Pi.
 # Codex and OpenCode don't group sessions by project, so they aren't searched.
+# Verify pinned and active AGY sessions via steps 2–3 of worktree-cleanup.md.
 slash_slug() { printf '%s' "$1" | sed 's#^/##; s#/#-#g'; }
 claude_slug() { printf '%s' "$1" | sed 's#[^A-Za-z0-9]#-#g'; }
 transcript_dirs() {
@@ -87,18 +89,22 @@ transcript_dirs() {
 now=$(date +%s)
 
 echo "# base: $base"
+echo "# note: AGY transcripts not scanned; verify pinned/active AGY sessions"
 printf "SIZE\tAGE\tMERGED\tDIRTY\tREMOTE\tPR\tLAST_CHAT\tBUCKET\tWORKTREE\n"
 
 git worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print}' | while IFS= read -r wt; do
 	[ "$wt" = "$main_wt" ] && continue
 
-	size=$(du -sh "$wt" 2>/dev/null | awk '{print $1}')
+	if [ -d "$wt" ] && size=$(du -sh "$wt" 2>/dev/null) && [ -n "$size" ]; then
+		size=${size%%[[:space:]]*}
+	else
+		size="-"
+	fi
 	head=$(git -C "$wt" rev-parse HEAD 2>/dev/null)
 	head_ts=$(git -C "$wt" log -1 --format='%ct' HEAD 2>/dev/null || echo 0)
 	age=$([ "$head_ts" -gt 0 ] 2>/dev/null && echo "$(( (now - head_ts) / 86400 ))d" || echo "?")
 
-	# Squash-merged branches are not ancestors of the base, so PR state is the
-	# real signal; merge-base only catches fast-forward/rebase merges.
+	# Squash merges need PR evidence in addition to this ancestry check.
 	git merge-base --is-ancestor "$head" "$base" 2>/dev/null && merged=YES || merged=no
 
 	# Track local files even when status.showUntrackedFiles hides them by default.
@@ -121,25 +127,33 @@ git worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print}'
 	branch=$(git -C "$wt" symbolic-ref --quiet --short HEAD 2>/dev/null || echo "")
 	if [ -z "$branch" ]; then remote=detached
 	elif git -C "$wt" show-ref --verify --quiet "refs/remotes/origin/$branch"; then
-		[ "$(git -C "$wt" rev-parse "origin/$branch" 2>/dev/null)" = "$head" ] \
-			&& remote=pushed \
-			|| remote="ahead$(git -C "$wt" rev-list --count "origin/$branch..HEAD" 2>/dev/null)"
+		if counts=$(git -C "$wt" rev-list --left-right --count "$head...refs/remotes/origin/$branch" 2>/dev/null); then
+			IFS=$'\t' read -r ahead behind <<< "$counts"
+			remote=""
+			[ "$ahead" = 0 ] || remote="ahead$ahead"
+			[ "$behind" = 0 ] || remote="${remote:+$remote/}behind$behind"
+			remote=${remote:-pushed}
+		else remote=unknown; fi
 	else remote=no-remote; fi
 
-	pr=$([ -n "$branch" ] && jq -r --arg b "$branch" \
-		'.[] | select(.head==$b) | "#\(.number)/\(.state)"' "$prs" 2>/dev/null | head -1)
-	[ -z "$pr" ] && pr="-"
+	IFS=$'\t' read -r pr pr_state pr_base pr_head < <(
+		[ -n "$branch" ] && jq -r --arg b "$branch" '
+			first(.[] | select(.head == $b))
+			| ["#\(.number)/\(.state)", .state, .base, .headOid] | @tsv
+		' "$prs" 2>/dev/null
+	)
+	pr=${pr:--}
 
 	# Most recent chat whose transcript operated in this worktree. Match path
 	# followed by "/" or a quote so glint-482 does not match glint-482-r37.
 	# Search the main repo's transcript dirs and the worktree's own.
-	last="-"; last_ts=0
+	last="unchecked:agy"; last_ts=0
 	dirs=$( { transcript_dirs "$main_wt"; transcript_dirs "$wt"; } | sort -u)
 	if [ -n "$dirs" ]; then
 		f=$(printf '%s\n' "$dirs" | tr '\n' '\0' | xargs -0 rg -l -0 -F -e "${wt}/" -e "${wt}\"" 2>/dev/null \
 			| xargs -0 stat "${stat_fmt[@]}" 2>/dev/null | sort -rn | head -1)
 		if [ -n "$f" ]; then last_ts=$(echo "$f" | awk '{print $1}')
-			last=$(fmt_day "$last_ts" 2>/dev/null); fi
+			last=$(fmt_day "$last_ts" 2>/dev/null) || last="unchecked:agy"; fi
 	fi
 	recent=$([ "$last_ts" -gt 0 ] 2>/dev/null && [ $(( (now - last_ts) / 86400 )) -le 4 ] && echo yes || echo no)
 
@@ -147,7 +161,9 @@ git worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print}'
 		case "$pr" in */open|*/draft) bucket=hold-open-pr ;; *)
 			if [ "$recent" = yes ]; then bucket=verify-recent-chat
 			elif [ "$dirty" != clean ]; then bucket=review
-			elif [ "$merged" = YES ] || [ "$pr" != "-" ]; then bucket=safe
+			elif [ "$merged" = YES ]; then bucket=safe
+			elif [ "$pr_state" = merged ] && [ "$pr_base" = "${base#origin/}" ] &&
+				[ -n "$pr_head" ] && [ "$pr_head" = "$head" ]; then bucket=safe
 			else bucket=review; fi ;;
 		esac ;;
 	esac
@@ -155,5 +171,3 @@ git worktree list --porcelain | awk '/^worktree /{sub(/^worktree /, ""); print}'
 	printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
 		"$size" "$age" "$merged" "$dirty" "$remote" "$pr" "$last" "$bucket" "$wt"
 done | sort -t$'\t' -k1,1 -rh
-
-rm -f "$prs"

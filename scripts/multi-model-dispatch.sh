@@ -24,8 +24,10 @@ usage() {
 分发时透传进程退出码。--check 只报告状态，退出码为 0。
 
 readonly 模式
-  Codex 使用 read-only 沙箱。只读审查请指定禁用可写 MCP 的 profile。
+  Codex 使用 read-only 沙箱。mcp list 失败或存在启用的 MCP 时拒绝启动。
+  禁用可写 MCP 后确认清单无 enabled 项，或选择只读 profile:reviewer-codex。
   Pi 仅开放 read,grep,find,ls 并停用扩展，项目需要迁移 .pi/commands 时拒绝启动。
+  Pi 仅在成功退出后替换输出文件。
 EOF
 }
 
@@ -183,6 +185,22 @@ exec < <(printf '%s' "$prompt")
 
 case "$engine" in
   codex)
+    if [[ $mode == readonly ]]; then
+      mcp_args=(mcp list)
+      if [[ $model == profile:* ]]; then
+        mcp_args=(-p "$profile" "${mcp_args[@]}")
+      fi
+      if ! mcp=$(cd -- "$cwd" && "$binary" "${mcp_args[@]}" </dev/null); then
+        die 'Codex mcp list 失败，只读模式拒绝启动。请检查配置或使用 profile:reviewer-codex'
+      fi
+      # Both stdio and HTTP tables end in Status and Auth, separated by padding.
+      mcp_enabled=$(awk -F '[[:blank:]][[:blank:]]+' '
+        { sub(/[[:blank:]]+$/, "") }
+        NF > 1 && $(NF - 1) == "enabled" { print "enabled"; exit }
+      ' <<< "$mcp")
+      [[ -z $mcp_enabled ]] ||
+        die 'Codex 有 enabled MCP，只读模式拒绝启动。请禁用可写 MCP，或使用 profile:reviewer-codex'
+    fi
     args=(exec -s "$sandbox" -C "$cwd" --ephemeral -o "$output")
     if [[ $model == profile:* ]]; then
       args+=(-p "$profile")
@@ -203,6 +221,12 @@ case "$engine" in
       args+=(--tools read,grep,find,ls --no-extensions)
     fi
     cd -- "$cwd"
-    exec "$binary" "${args[@]}" > "$output"
+    tmp_output=$(mktemp "${output_parent%/}/.multi-model-dispatch.XXXXXX")
+    trap 'rm -f -- "$tmp_output"' EXIT
+    trap 'exit 129' HUP
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    "$binary" "${args[@]}" > "$tmp_output" || exit $?
+    mv -f -- "$tmp_output" "$output"
     ;;
 esac
