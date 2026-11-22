@@ -1,0 +1,20 @@
+{
+  "name": "agy-wstack",
+  "displayName": "agy-wstack",
+  "version": "0.15.46",
+  "description": "pstack 的 Antigravity 简体中文移植版。用可验证的工程流程组织任务，通过 AGY 子代理和本地模型 CLI 并行实现与审查。",
+  "author": {
+    "name": "Lauren Tan"
+  },
+  "homepage": "https://github.com/lfld287/agy-wstack",
+  "repository": "https://github.com/lfld287/agy-wstack",
+  "license": "MIT",
+  "keywords": [
+    "pstack",
+    "poteto-mode",
+    "workflow",
+    "principles",
+    "subagents",
+    "unslop"
+  ]
+}
