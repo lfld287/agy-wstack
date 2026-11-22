@@ -14,4 +14,4 @@ disable-model-invocation: true
 
 列出采纳项（问题、建议、技能）、驳回项（理由）和待办，得到批准后再编辑任何技能。
 
-禁止直接编辑 `plugins/cache/` 下的技能。请求批准前给出目标位置。AGY 使用项目的 `.agents/skills/<skill>/` 或用户的 `~/.gemini/config/skills/<skill>/`。Cursor 使用 `.cursor/skills/<skill>/` 或 `~/.cursor/skills/<skill>/`。其他环境使用相应的项目或用户技能目录，例如 `.claude/skills/<skill>/` 或 `~/.agents/skills/<skill>/`。获批后把技能目录复制过去，再编辑副本。禁止开 PR 或推送。
+禁止直接编辑 `plugins/cache/` 下的技能。请求批准前给出目标位置。AGY 使用项目的 `.agents/skills/<skill>/` 或用户的 `~/.gemini/config/skills/<skill>/`。Cursor 使用 `.cursor/skills/<skill>/` 或 `~/.cursor/skills/<skill>/`。其他环境使用相应的项目或用户技能目录，例如 `.claude/skills/<skill>/` 或 `~/.agents/skills/<skill>/`。获批后把技能目录复制过去，再编辑副本。将单个技能复制到用户或项目技能目录时，检查其中跨出自身目录的相对路径与 Markdown 链接，例如 `../../docs/harness/antigravity.md` 或 `../arena/SKILL.md`，改为指向已安装插件目录或附带来源说明，避免副本出现断链。禁止开 PR 或推送。

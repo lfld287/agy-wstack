@@ -75,9 +75,9 @@ disable-model-invocation: true
 
 playbook 步骤直接派工时，原生用 `TypeName: poteto-agent`。若插件代理未注册，用当前通用代理，并在简报首段要求先完整读取本文件和原则索引。由 `arena`、`pstack-swarm`、`interrogate` 路由的工作流按其角色和隔离规则启动。简报第一行固定为「在开始任何工作前，先完整阅读 `<本技能的绝对目录>/worker.md`。」随后给出目标、基线、范围、文件指针、允许的写入和验收证据。外部 CLI 使用同样的简报。
 
-按 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度) 读取规则和选择引擎。代码角色读取 `feature, refactoring`、`bug-fix`、`perf-issue` 或 `hillclimb`。写作和判断选 `judgment and prose`。机械任务和独立验证用 `swarm workers`。代码与判断默认 `agy:pro`，机械和验证默认 `agy:flash`。未配置的面板以 `agy:pro, agy:flash` 起步，可加入已确认的外部席。只支持继承时使用 `agy:inherit` 并说明实际模型覆盖。规则缺少 `# defaults: 4` 时保留可明确解析的设置，提醒一次重跑 `/setup-pstack`。
+按 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度) 读取规则和选择引擎。代码角色读取 `feature, refactoring`、`bug-fix`、`perf-issue` 或 `hillclimb`。写作和判断选 `judgment and prose`。机械任务和独立验证用 `swarm workers`。规则已配置或用户显式指定时，严格按配置使用 `agy:pro`、`agy:flash`、`agy:flash_lite` 等档位或外部席。未配置角色规则且用户未显式指定模型档位时，原生子代理默认传 `agy:inherit`，遵循 `invoke_subagent.Model` 契约，不擅自按复杂度切换档位。可通过 `/setup-pstack` 显式写入各角色档位。未配置的面板默认使用 `agy:inherit`，可按需加入已确认的外部席。规则缺少 `# defaults: 4` 时保留可明确解析的设置，提醒一次重跑 `/setup-pstack`。
 
-复杂任务可在已支持的级别内提高一档，常规和机械任务下调。外部努力等级按本机支持项，面板维持列出的档位。调用拒绝的模型停止重试，按可用同家族模型、角色回退、原生继承的顺序处理并报告。指定供应商为硬性要求时，保留缺口，不能用其他模型冒充。
+仅在规则已配置或用户显式授权调整档位时，才在已支持的级别内提高或下调档位；未配置且未显式指定时保持 `agy:inherit`。外部努力等级按本机支持项，面板维持列出的档位。调用拒绝的模型停止重试，按可用同家族模型、角色回退、`agy:inherit` 的顺序处理并报告。指定供应商为硬性要求时，保留缺口，不能用其他模型冒充。
 
 同轮先用 `run_command`（`WaitMsBeforeAsync: 500`）发出外部角色，再为每个原生角色分别调用 `invoke_subagent`。通过 `manage_task` 管外部任务 ID。写任务用独立工作区或互不重叠的路径，审核使用只读工具和固定基线。需要第二意见时给另一家供应商相同简报。主会话审阅 diff、运行独立验证并撰写汇总。
 

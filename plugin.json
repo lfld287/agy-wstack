@@ -3,6 +3,7 @@
   "displayName": "agy-wstack",
   "version": "0.15.46",
   "description": "pstack 的 Antigravity 简体中文移植版。用可验证的工程流程组织任务，通过 AGY 子代理和本地模型 CLI 并行实现与审查。",
+  "logo": "assets/logo.svg",
   "author": {
     "name": "Lauren Tan"
   },

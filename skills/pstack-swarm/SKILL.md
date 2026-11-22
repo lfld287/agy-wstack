@@ -12,14 +12,14 @@ disable-model-invocation: true
 
 1. 写清完成条件和需要交付的产物或报告。
 2. 选择切片覆盖、同简报竞速，或两者混合。竞速和混合任务在派工前声明 `first pass`（首个通过）、`rank all`（全量排序）或 `best-of`（比较后择优）。
-3. 按 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度) 读取 `swarm workers`，缺失时用 `agy:flash`。明确要求异构竞速或适合异构覆盖时，逐席写明模型，引入可用的 AGY 和外部引擎。模型级别按 `poteto-mode` 匹配任务。模型被拒绝时选择同家族合法项或回退默认可用级别，记录替换及对比缺口。
+3. 按 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度) 读取 `swarm workers`。规则已配置或用户显式指定档位时严格按配置使用。未配置且用户未显式指定时，原生席位默认传 `agy:inherit`，不擅自按复杂度切换档位，可通过 `/setup-pstack` 显式写入各角色档位。明确要求异构竞速或适合异构覆盖时，逐席写明模型，引入可用的 AGY 和外部引擎。模型被拒绝时选择同家族合法项或回退 `agy:inherit`，记录替换及对比缺口。
 4. 每个写任务独占工作区或一组可写路径。验证和测量简报写明完整提交 SHA。非 Git 任务给出对应的固定快照。测量同时给出采样次数、单样本定义和执行顺序，要求写入结果。
 
 ## B. 并发执行
 
 每个简报独立可用。首行要求读取绝对路径的 `worker.md`。简报说明目标、范围、基线、切片或竞速组、验证做法、权限和应报告的字段。结果使用 `PASS`、`ISSUES` 或 `BLOCKED`，附证据。证明缺陷时列出所有有证据的问题。
 
-同一轮先向每个 `codex:` 或 `pi:` 席发起 `run_command`（`WaitMsBeforeAsync: 500`），执行 `scripts/multi-model-dispatch.sh` 的绝对路径。传入指定工作目录、模型、读写模式、该席的提示词和独立结果路径。随后在同轮为 `agy:*` 席并发逐席调用 `invoke_subagent`，每次在顶层传 `TypeName`、`Role`、`Prompt`、`Model`、`Workspace`，使用可用原生执行类型和相应模型。写任务使用 `Workspace: branch` 或 `share`，或者在 `inherit` 中严格分配不重叠路径。读取已固定基线的任务可以用 `inherit`。启动本轮所有席位后再收结果，用 `manage_task` 跟进外部任务 ID 和退出状态。
+同一轮先向每个 `codex:` 或 `pi:` 席发起 `run_command`（`WaitMsBeforeAsync: 500`），执行 `<插件根目录>/scripts/multi-model-dispatch.sh` 的绝对路径。传入指定工作目录、模型、读写模式、该席的提示词和独立结果路径。随后在同轮为 `agy:*` 席并发逐席调用 `invoke_subagent`，每次在顶层传 `TypeName`、`Role`、`Prompt`、`Model`、`Workspace`，使用可用原生执行类型和相应模型。写任务使用 `Workspace: branch` 或 `share`，或者在 `inherit` 中严格分配不重叠路径。读取已固定基线的任务可以用 `inherit`。启动本轮所有席位后再收结果，用 `manage_task` 跟进外部任务 ID 和退出状态。
 
 需要复核的写任务用独立读者按同一验收标准检查，可选另一引擎或供应商。复核依赖已完成的产物，在下一轮启动。工作者退出或缺产物时，继续收集其余结果并记录覆盖缺口。
 

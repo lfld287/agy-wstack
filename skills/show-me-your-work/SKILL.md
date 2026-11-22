@@ -35,7 +35,7 @@ ts	phase	decision	why	evidence	result
 
 按向同事说明工作时的方式写。使用日常用语和具体动作。日志文字也应用 **unslop**。
 
-用 `run_command` 调用 `scripts/log.sh <logfile> <phase> <decision> <why> <evidence> <result>`。脚本填入 `ts`，首次使用时写入表头，清理意外的制表符和换行，并给以 `=`、`+`、`-` 或 `@` 开头的单元格加单引号。也可以直接用 `printf` 追加一行。单元格来自生成结果或用户输入时，同样注意这些字符。
+用 `run_command` 调用 `<技能根目录>/scripts/log.sh <logfile> <phase> <decision> <why> <evidence> <result>`。脚本填入 `ts`，首次使用时写入表头，清理意外的制表符和换行，并给以 `=`、`+`、`-` 或 `@` 开头的单元格加单引号。也可以直接用 `printf` 追加一行。单元格来自生成结果或用户输入时，同样注意这些字符。
 
 记录决策点和检查点，例如选定一条路径，完成一个单元及其验证结果，改变方向或撤回及其触发原因，发现阻塞，修复某道检查关卡。循环运行时每轮记录一行。跳过琐碎或一看便知的动作。
 

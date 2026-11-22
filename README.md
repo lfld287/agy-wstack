@@ -22,7 +22,7 @@
 }
 ```
 
-已有设置时合并该条目。项目配置使用可信工作区或仓库内的路径。重新打开会话后，用 `agy plugin list` 查看加载状态，或用 `agy plugin validate <插件根目录>` 检查文件。
+已有设置时合并该条目。项目配置使用可信工作区或仓库内的路径。重新打开会话后，用 `agy plugin list` 查看加载状态，用 `agy plugin validate <插件根目录> --strict` 检查清单与文件，或在本仓库根目录运行 `./scripts/check-repo.sh` 执行本地一致性校验。GitHub PR 监视工具 `skills/poteto-mode/scripts/watch-pr/watch-pr` 需要本机安装 `bun`，首次运行可能自动安装依赖，也可预先在 `skills/poteto-mode/scripts` 目录执行 `bun install --frozen-lockfile`。缺少 `bun` 或插件目录只读且未预装依赖时，改用 `gh pr view`、`gh pr checks` 和 `gh api` 检查。
 
 ## 开始使用
 
@@ -59,7 +59,7 @@
 arena runners: agy:pro, codex:gpt-5.4, pi:anthropic/claude-opus-4-6:high
 ```
 
-未配置时，代码和判断用 `agy:pro`，机械工作和验证用 `agy:flash`。原生面板以 `agy:pro, agy:flash` 起步，已确认的外部模型可加入。模型可用性不足时说明具体退席或回退。工具字段、工作区模式、规则格式和后台任务示例见 [Antigravity 手册](docs/harness/antigravity.md)。
+未配置角色规则且用户未显式指定模型档位时，原生子代理默认传 `agy:inherit`，不擅自按复杂度切换档位。已配置 `pstack-models.md` 或有显式指令时，严格按配置使用 `agy:pro`、`agy:flash`、`agy:flash_lite` 等档位。可运行 `/setup-pstack` 为各角色显式写入档位，并加入已确认的外部模型。模型可用性不足时说明具体退席或回退。工具字段、工作区模式、规则格式和后台任务示例见 [Antigravity 手册](docs/harness/antigravity.md)。
 
 ## 22 个 playbook
 

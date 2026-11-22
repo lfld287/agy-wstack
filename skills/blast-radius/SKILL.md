@@ -35,7 +35,7 @@ disable-model-invocation: true
 3. **追踪搜索覆盖不到的地方。** 用 `read_file` 读所调用库的源码，核对锁定版本和本地补丁。查清运行时机，包括微任务、卸载与清理，以及 Solid 和 React 各自的行为。沿着符号搜索漏掉的路径追踪，例如 API 返回的 JSON、数据库列、线上传输格式、读取同一字节序列的其他语言、功能开关，以及间隔三层调用的下游代码。
 4. **如实评价风险。** 分别给出实际发生的可能性和发生后的代价。保留已证实的风险，另列已排除的场景。给出真实的 `file:line`。搜索无匹配也可作为结果。禁止凭空编造调用方或 API。
 5. **实测关键事实。** 写脚本或测试调用真实代码，通过 `run_command` 执行并附上实际结果。
-6. **范围大或涉及面广时，运行 [`arena`](../arena/SKILL.md)。** 按 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度) 应用 `~/.gemini/config/rules/pstack-models.md` 和 `.agents/rules/pstack-models.md` 的模型配置。先通过 `run_command` 设置 `WaitMsBeforeAsync: 500`，用 `scripts/multi-model-dispatch.sh --mode readonly` 启动配置中的 `codex` 或 `pi` 后台评审，再用 `invoke_subagent` 发起 AGY 原生批次，按任务选 `Model: "inherit"|"pro"|"flash"|"flash_lite"`。原生评审用 `Workspace: "share"` 并限定只读。用 `manage_task` 核对外部任务结果。向各模型提供相同的 diff、基线与问题，让它们独立判断。不同模型会发现不同的真实缺陷，逐项核查证据后再汇总。
+6. **范围大或涉及面广时，运行 [`arena`](../arena/SKILL.md)。** 按 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度) 应用 `~/.gemini/config/rules/pstack-models.md` 和 `.agents/rules/pstack-models.md` 的模型配置。先通过 `run_command` 设置 `WaitMsBeforeAsync: 500`，用 `<插件根目录>/scripts/multi-model-dispatch.sh --mode readonly` 启动配置中的 `codex` 或 `pi` 后台评审。只读 Codex 席位不得裸用可能开启可写 MCP 的模型 slug，须选用已禁用可写 MCP 的只读 profile，例如 `codex:profile:reviewer-codex`。随后在同轮用 `invoke_subagent` 发起 AGY 原生批次；未配置角色规则且未显式指定档位时默认传 `Model: "inherit"`，已配置或显式指定时按配置传 `"inherit"|"pro"|"flash"|"flash_lite"`。原生评审用 `Workspace: "share"` 并限定只读。用 `manage_task` 核对外部任务结果。向各模型提供相同的 diff、基线与问题，让它们独立判断。不同模型会发现不同的真实缺陷，逐项核查证据后再汇总。
 
 ## 交付内容
 

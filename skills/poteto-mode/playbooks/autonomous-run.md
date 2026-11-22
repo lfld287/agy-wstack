@@ -12,7 +12,7 @@
 
 **AGY 调度约定**
 
-- 先读用户规则 `~/.gemini/config/rules/pstack-models.md`，再按角色应用项目规则 `.agents/rules/pstack-models.md` 的覆盖项。按工作复杂度选档。原生委派逐席调用 `invoke_subagent`，并发时在同一轮发出各次调用。每次在顶层传 `TypeName`、`Role`、`Prompt`、`Model`、`Workspace`。直接派发时用 `TypeName: "poteto-agent"`，工作流技能可指定对应子代理。`Model` 接受 `"inherit"`、`"pro"`、`"flash"`、`"flash_lite"`。规则里的 `agy:*` 路由只传对应档位，`auto` 和 `inherit-parent` 均对应 `"inherit"`。`Workspace: "inherit"` 沿用父工作区，`"share"` 使用共享仓库对象的独立工作区，`"branch"` 使用从父工作区派生的隔离副本。启动前校验基线，后台运行完成后由 AGY 自动通知。
-- 需要跨模型复核或并行试验时，可混用原生子代理与 `codex`、`pi` 后台任务。按 `worker.md` 写简报，附文件路径和验收条件。混合派发时先用 `run_command` 启动各外部任务（设置 `Cwd` 和 `WaitMsBeforeAsync`），再在同轮为原生席并发逐席调用 `invoke_subagent`。外部命令可用 `scripts/multi-model-dispatch.sh` 封装，按 `--help` 指定引擎、模型、工作目录、权限模式、提示和独立结果路径。需要隔离时为外部任务分配本地 `git worktree`。记录任务 ID、实际模型、工作目录和结果路径，按各 CLI 支持的参数设置推理强度。同一工作区内的写入要么范围互斥，要么串行。收到完成通知后核对退出码与产物，需要时用 `manage_task` 查任务状态。
+- 先读用户规则 `~/.gemini/config/rules/pstack-models.md`，再按角色应用项目规则 `.agents/rules/pstack-models.md` 的覆盖项。原生委派逐席调用 `invoke_subagent`，并发时在同一轮发出各次调用。每次在顶层传 `TypeName`、`Role`、`Prompt`、`Model`、`Workspace`。直接派发时用 `TypeName: "poteto-agent"`，工作流技能可指定对应子代理。`Model` 接受 `"inherit"`、`"pro"`、`"flash"`、`"flash_lite"`。规则已配置或用户显式指定时，严格按配置使用对应档位，其中 `auto` 和 `inherit-parent` 均对应 `"inherit"`。未配置角色规则且用户未显式指定模型档位时，原生子代理默认传 `"inherit"`，不擅自按复杂度切换档位，可通过 `/setup-pstack` 显式写入各角色档位。`Workspace: "inherit"` 沿用父工作区，`"share"` 使用共享仓库对象的独立工作区，`"branch"` 使用从父工作区派生的隔离副本。启动前校验基线，后台运行完成后由 AGY 自动通知。
+- 需要跨模型复核或并行试验时，可混用原生子代理与 `codex`、`pi` 后台任务。按 `worker.md` 写简报，附文件路径和验收条件。混合派发时先用 `run_command` 并设置 `WaitMsBeforeAsync: 500` 启动各外部任务，再在同轮为原生席并发逐席调用 `invoke_subagent`。外部命令可用 `<插件根目录>/scripts/multi-model-dispatch.sh` 封装，按 `--help` 传入 `--cwd <工作区绝对路径>`、引擎、模型、权限模式、提示和独立结果路径。普通命令需要切换目录时，在 `CommandLine` 中使用 `cd -- "<workdir>" && ...` 或工具自身参数，例如 `git -C`。需要隔离时为外部任务分配本地 `git worktree`。记录任务 ID、实际模型、工作目录和结果路径，按各 CLI 支持的参数设置推理强度。同一工作区内的写入要么范围互斥，要么串行。收到完成通知后核对退出码与产物，需要时用 `manage_task` 查任务状态。
 
 **回复**应包含退出条件、迭代次数、保留与撤回的改动，以及退出条件最终是否满足。

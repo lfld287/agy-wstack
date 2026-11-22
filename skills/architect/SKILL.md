@@ -10,4 +10,4 @@ disable-model-invocation: true
 
 设计规模较大或存在争议时，使用 [**arena**](../arena/SKILL.md) 技能并行推演。用 `read_file` 读取用户规则 `~/.gemini/config/rules/pstack-models.md` 和项目规则 `.agents/rules/pstack-models.md`，按角色应用项目覆盖，缺少设置时用 arena 默认值。根据 `arena runners` 与 `arena cross-judge pool` 选择候选和交叉评审。
 
-按 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度) 在同一轮派发两种引擎。先用 `run_command` 设置 `WaitMsBeforeAsync: 500`，通过 `scripts/multi-model-dispatch.sh` 发出配置中的 `codex` 或 `pi` 后台任务，再用 `invoke_subagent` 启动 AGY 原生批次。`Model` 可选 `inherit`、`pro`、`flash`、`flash_lite`。`Workspace` 可选 `inherit`、`share`、`branch`，只读设计可共享，需要隔离写入时采用获准的独立工作区。给两类候选相同的任务与输入、各自的输出位置。用 `manage_task` 核对外部任务是否完成。收齐结果后，按同一标准比较至少两种方案，参考独立评审，选出基础方案并验证综合后的设计。
+按 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度) 在同一轮派发两种引擎。先用 `run_command` 设置 `WaitMsBeforeAsync: 500`，通过 `<插件根目录>/scripts/multi-model-dispatch.sh` 发出配置中的 `codex` 或 `pi` 后台任务，再用 `invoke_subagent` 启动 AGY 原生批次。未配置角色规则且未显式指定档位时原生默认传 `inherit`，已配置或显式指定时按配置传 `inherit`、`pro`、`flash`、`flash_lite`。`Workspace` 可选 `inherit`、`share`、`branch`，只读设计可共享，需要隔离写入时采用获准的独立工作区。给两类候选相同的任务与输入、各自的输出位置。用 `manage_task` 核对外部任务是否完成。收齐结果后，按同一标准比较至少两种方案，参考独立评审，选出基础方案并验证综合后的设计。

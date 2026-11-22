@@ -5,7 +5,7 @@ description: 探测 AGY 子代理和本地模型 CLI，按推理预算为 pstack
 
 # 配置 pstack 模型
 
-在用户规则 `~/.gemini/config/rules/pstack-models.md` 中为每个角色写一行。项目可以通过 `.agents/rules/pstack-models.md` 按角色覆盖。技能读两个文件，无对应行时才使用默认值。
+在用户规则 `~/.gemini/config/rules/pstack-models.md` 中为每个角色写一行。项目可以通过 `.agents/rules/pstack-models.md` 按角色覆盖。技能读两个文件，无对应行且未显式指定时原生子代理默认传 `agy:inherit`，运行本技能可为各角色显式写入档位。
 
 ## 1. 探测可用模型
 
@@ -38,7 +38,7 @@ description: 探测 AGY 子代理和本地模型 CLI，按推理预算为 pstack
 
 校验每个前缀、外部 ID、profile 和已声明的努力等级。面板保留至少两席。外部项未探测成功时，优先用其他已确认的引擎，或改为可用的 `agy:pro, agy:flash`。原生级别不可用时用已支持的级别或 `agy:inherit`，并告知哪些席位共用模型。如果无法满足明确的异构或异厂要求，说明缺口。用户选了未确认项时，请其换成验证过的选项。
 
-`arena cross-judge pool` 和 `interrogate reviewers` 等只读 Codex 席位使用 `codex:profile:reviewer-codex`。本机缺少该 profile 时，先创建只读 profile，或选用已禁用可写 MCP 的配置。配置和核对方式见 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度)。
+`arena cross-judge pool`、`interrogate reviewers` 与只读 `blast-radius` 等只读 Codex 席位不得裸用可能开启可写 MCP 的模型 slug，须选用已禁用可写 MCP 的只读 profile，例如 `codex:profile:reviewer-codex`。`<插件根目录>/scripts/multi-model-dispatch.sh` 在 `readonly` 模式下会先执行 `mcp list` 预检并拒绝存在 `enabled` MCP 服务器的配置。本机缺少只读 profile 时，先创建只读 profile 并禁用所有可写 MCP 与提供可写工具的插件，并在目标工作目录用 `codex -p <名称> mcp list` 核对无 `enabled` 服务器。配置和核对方式见 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度)。
 
 ## 5. 写入用户规则
 
