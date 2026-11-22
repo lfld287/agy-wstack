@@ -5,7 +5,7 @@
 1. [安装和配置](./01-setup.md)。安装插件，选择模型。
 2. [用 `/poteto-mode` 分派任务](./02-poteto-mode.md)。给出目标，看它如何选择 playbook。
 3. [理解代码](./03-understand.md)。动手前先做只读调查，并使用 `/how`、`/why`、`/teach` 和 `/recall`。
-4. [设计变更](./04-design.md)。代码定型前使用 `/architect`、`/arena`、`/swarm`、`/interrogate`，先验证原型，再定计划。
+4. [设计变更](./04-design.md)。代码定型前使用 `/architect`、`/arena`、`/pstack-swarm`、`/interrogate`，先验证原型，再定计划。
 5. [实现变更并清理 diff](./05-build-and-clean.md)。了解实现类 playbook、`/tdd`、`/unslop` 和 `/no-comments`。
 6. [验证与交付](./06-verify-and-ship.md)。在真实应用上验证行为，对测试难以触及的性质做形式验证，用 `/benchmark-checklist` 核实数据，再开一个聚焦的 PR 并推进合并。
 7. [离开后继续运行](./07-overnight.md)。先验证自动化是否可靠，明确无人值守约定，保留可审计的决策日志，再扩展到多代理协调和自动化。

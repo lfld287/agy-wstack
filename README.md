@@ -34,7 +34,7 @@
 /poteto-mode 空闲时滚动位置仍在偏移。先复现，修根因，再驱动界面确认。
 /poteto-mode 用同一输入比较两个 Markdown 渲染原型，保留各自结果。
 /arena 给出同一模块的多个设计，按调用边界、可读性和验证成本比较。
-/swarm 检查每个包的本地验证脚本。每个工作者负责一组，交一份汇总。
+/pstack-swarm 检查每个包的本地验证脚本。每个工作者负责一组，交一份汇总。
 /interrogate 审查这个变更。只保留能用实际命令证实的问题。
 ```
 
@@ -147,7 +147,7 @@ arena runners: agy:pro, codex:gpt-5.4, pi:anthropic/claude-opus-4-6:high
 | `sharpen` | 追问任务应有的证据、专业方法和验收，改写提示词。 |
 | `show-me-your-work` | 用 TSV 留下长任务的决策、理由和证据。 |
 | `statechart` | 检查 TLA+ 模型并绘制 Mermaid 状态图，给出反例最短路径。 |
-| [`swarm`](skills/swarm/SKILL.md) | 并行覆盖多个切片或竞速，给出统一报告。 |
+| [`pstack-swarm`](skills/pstack-swarm/SKILL.md) | 并行覆盖多个切片或竞速，给出统一报告（为避开 AGY 原生 `/swarm` 命令而重命名）。 |
 | `tdd` | 明确要求 TDD、回归测试，或缺陷有便宜可靠的本地测试路径时使用。 |
 | `teach` | 合并 `how` 与 `why`，逐步解释系统及设计动机。 |
 | `technical-writing` | 按文档层次与技术写作规则检查文档、RFC 和 PR。 |

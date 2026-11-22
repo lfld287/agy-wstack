@@ -35,7 +35,7 @@
 
 - `/interrogate 以怀疑的态度审查整个分支。先不改东西。只报真实缺陷或回归。` 也读 Dropped 清单。
 - `/create-formal-verification-skill 证明 <性质> 在 <模块> 中成立，包括 <步骤> 交错执行或重试时。` 这些代码合并或重构后，运行 `/maintain-formal-verification-skill`。
-- `/swarm 按各包的检查脚本核查 <目录> 下的所有包。每包一个工作代理，交一份报告。`
+- `/pstack-swarm 按各包的检查脚本核查 <目录> 下的所有包。每包一个工作代理，交一份报告。`
 - `/poteto-mode open the pr. 拆成小而有序的提交，在描述中附证据。`
 - `/poteto-mode babysit this pr. 跟进直到全绿。` 只看状态则用 `/poteto-mode check on pr <编号>。还有遗留项吗？`
 - `/poteto-mode land the stack.`

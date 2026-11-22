@@ -1,6 +1,6 @@
 ---
-name: swarm
-description: 并行分配多项工作、收齐结果并生成一份报告。用于 /swarm、并行覆盖、竞速、检验或探索。
+name: pstack-swarm
+description: 并行分配多项工作、收齐结果并生成一份报告。用于 /pstack-swarm、并行覆盖、竞速、检验或探索。
 disable-model-invocation: true
 ---
 

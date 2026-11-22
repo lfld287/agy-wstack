@@ -77,7 +77,7 @@ pstack 上游为 Cursor 构建，可从聊天运行 `/add-plugin pstack`，或�
 | 找出小 diff 可能破坏的外部行为 | [`/blast-radius`](../blast-radius/SKILL.md) |
 | 跨函数边界编写代码前，确定类型和模块结构 | [`/architect`](../architect/SKILL.md) |
 | 让多个代理做同一个题目，再合成最佳方案 | [`/arena`](../arena/SKILL.md) |
-| 并行检查各分片或让工作代理竞跑，按环境用隔离 worktree 或云代理 | [`/swarm`](../swarm/SKILL.md) |
+| 并行检查各分片或让工作代理竞跑，按环境用隔离 worktree 或云代理 | [`/pstack-swarm`](../pstack-swarm/SKILL.md) |
 | 让不同模型审阅 diff，尝试找出它被破坏的方式 | [`/interrogate`](../interrogate/SKILL.md) |
 | 存在低成本本地测试时先写测试，再修缺陷 | [`/tdd`](../tdd/SKILL.md) |
 | 在 `.ts` 或 `.tsx` 工作中应用 TypeScript 规则 | [`/typescript-best-practices`](../typescript-best-practices/SKILL.md) |
@@ -105,7 +105,7 @@ pstack 上游为 Cursor 构建，可从聊天运行 `/add-plugin pstack`，或�
 容易混淆的技能如下。
 
 - `/how` 解释代码行为，`/why` 解释原因。`/teach` 调用其中一个或两个，再把结果讲明白。
-- `/arena` 给各工作代理相同的简报，再合并最佳部分。`/swarm` 按分片或竞跑组织任务，交一份报告。
+- `/arena` 给各工作代理相同的简报，再合并最佳部分。`/pstack-swarm` 按分片或竞跑组织任务，交一份报告。
 - `/interrogate` 审阅 diff。`/blast-radius` 查 diff 以外的潜在破坏，并证明那个决定这次改动能否安全落地的事实。
 - `/recall` 从近期聊天复原上下文。`/ketchup` 仅覆盖本聊天中用户上一条消息之后的活动。接续特定聊天或分支用 Session pickup playbook。
 - `/figure-it-out` 设计一轮严谨的运行。Autonomous run playbook 驱动单项任务持续执行到完成条件。

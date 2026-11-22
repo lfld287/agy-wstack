@@ -13,7 +13,7 @@ disable-model-invocation: true
 原则索引给出触发条件。最终说明实际改变决策的原则及具体选择，只引用本轮读过全文的原则。
 
 - 第一条消息重述用户目标和能满足它的最小改动，然后执行。子代理简报首行先要求读 `worker.md`，随后写目标和任务。PR 的 `## Why` 和最终报告以目标开头。
-- 可由实验裁决的分歧走 `prototype`。写代码先命名数据形状，跨函数边界用 `architect`，并行覆盖用 `swarm`，同题比选用 `arena`，有争议的设计用 `interrogate`。
+- 可由实验裁决的分歧走 `prototype`。写代码先命名数据形状，跨函数边界用 `architect`，并行覆盖用 `pstack-swarm`，同题比选用 `arena`，有争议的设计用 `interrogate`。
 - 正文和回信用 `unslop`，文档、PR 描述和提交信息用 `technical-writing`。提交前用可用的去冗余工具或复读 diff。送审前用 `no-comments`。
 - 交付 UI、IDE 或 CLI 时驱动真实界面或命令。报告测量前走 `benchmark-checklist`。
 - PR 状态走 `babysit`，落地已绿的堆叠 PR 走 `shipping`，逐条判断机器人评论。
@@ -73,7 +73,7 @@ disable-model-invocation: true
 
 ## 子代理
 
-playbook 步骤直接派工时，原生用 `TypeName: poteto-agent`。若插件代理未注册，用当前通用代理，并在简报首段要求先完整读取本文件和原则索引。由 `arena`、`swarm`、`interrogate` 路由的工作流按其角色和隔离规则启动。简报第一行固定为「在开始任何工作前，先完整阅读 `<本技能的绝对目录>/worker.md`。」随后给出目标、基线、范围、文件指针、允许的写入和验收证据。外部 CLI 使用同样的简报。
+playbook 步骤直接派工时，原生用 `TypeName: poteto-agent`。若插件代理未注册，用当前通用代理，并在简报首段要求先完整读取本文件和原则索引。由 `arena`、`pstack-swarm`、`interrogate` 路由的工作流按其角色和隔离规则启动。简报第一行固定为「在开始任何工作前，先完整阅读 `<本技能的绝对目录>/worker.md`。」随后给出目标、基线、范围、文件指针、允许的写入和验收证据。外部 CLI 使用同样的简报。
 
 按 [双引擎调度](../../docs/harness/antigravity.md#双引擎调度) 读取规则和选择引擎。代码角色读取 `feature, refactoring`、`bug-fix`、`perf-issue` 或 `hillclimb`。写作和判断选 `judgment and prose`。机械任务和独立验证用 `swarm workers`。代码与判断默认 `agy:pro`，机械和验证默认 `agy:flash`。未配置的面板以 `agy:pro, agy:flash` 起步，可加入已确认的外部席。只支持继承时使用 `agy:inherit` 并说明实际模型覆盖。规则缺少 `# defaults: 4` 时保留可明确解析的设置，提醒一次重跑 `/setup-pstack`。
 
